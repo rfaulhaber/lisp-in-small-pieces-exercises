@@ -1,0 +1,4 @@
+#+TITLE: Lisp in Small Pieces notes
+
+This repo contains notes, implementations, and exercises from the book /Lisp in
+Small Pieces/.
