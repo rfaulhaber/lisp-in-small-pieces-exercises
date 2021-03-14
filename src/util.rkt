@@ -1,3 +1,5 @@
+; -*- mode: racket; -*-
+
 (module util racket
   (provide atom?)
   (define (atom? x)

@@ -1,10 +1,11 @@
-; -*- racket-mode -*-
-#lang racket
+; -*- mode: racket -*-
+
+; this is a translation of the Scheme presented in chapter 1 of LiSP to Racket
+; and contains amended code implementing exercises.
+; This code should be run in a racket/base REPL
 
 (require "./util.rkt")
 (require rnrs/mutable-pairs-6)
-
-; this is a translation of the Scheme presented in chapter 1 of LiSP to Racket
 
 (define the-false-value (cons "false" "boolean"))
 
@@ -25,6 +26,26 @@
         (else     (invoke (evaluate (car e) env)
                           (evlis (cdr e) env) )) ) ) )
 
+(define (evaluate-trace e env)
+  (if (atom? e) 
+      (cond ((symbol? e) (lookup e env))
+            ((or (number? e) (string? e) (char? e) (boolean? e) (vector? e))
+             e)
+            (else (error "Cannot evaluate" e)))
+      (case (car e)
+        ((quote)  (cadr e))
+        ((if)     (if (not (eq? (evaluate (cadr e) env) the-false-value))
+                      (evaluate (caddr e) env)
+                      (evaluate (cadddr e) env) ))
+        ((begin)  (eprogn (cdr e) env))
+        ((set!)   (update! (cadr e) env (evaluate (caddr e) env)))
+        ((lambda) (make-function (cadr e) (cddr e) env))
+        (else (let ([fn-name (car e)]
+                    [evs (cdr e)])
+                (printf "calling ~a with ~a\n" fn-name evs)
+                (invoke (evaluate (car e) env)
+                        (evlis (cdr e) env) ))))))
+
 (define (eprogn exps env)
   (if (pair? exps)
       (if (pair? (cdr exps))
@@ -33,11 +54,16 @@
           (evaluate (car exps) env) )
       '() ) )
 
+; this is the answer copied, since the author has a better implementation than me 😬
 (define (evlis exps env)
+  (define (evlis exps)
+    (if (pair? (cdr exps))
+        (cons (evaluate (car exps) env)
+              (evlis (cdr exps)) )
+        (list (evaluate (car exps) env)) ) )
   (if (pair? exps)
-      (cons (evaluate (car exps) env)
-            (evlis (cdr exps) env) )
-      '() ) ) 
+      (evlis exps)
+      '()))
 
 (define (lookup id env)
   (if (pair? env)
@@ -169,11 +195,20 @@
 (definitial list 
   (lambda (vals) vals) )
 
-(define (chapter1-scheme)
+(define (chapter1-scheme tracing)
   (define (toplevel)
-     (display (evaluate (read) env.global))
-     (toplevel) )
-  (toplevel) )
+    (let ((input (read)))
+      (unless (eq? input "exit")
+        (display (evaluate input env.global))
+        (toplevel))))
+  (define (toplevel-with-tracing)
+    (let ((input (read)))
+      (unless (eq? input "exit")
+        (display (evaluate-trace input env.global))
+        (toplevel))))
+  (if tracing
+      (toplevel-with-tracing)
+      (toplevel)))
 
 ;;;  Tests provided by author, commented out for now
 
