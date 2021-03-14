@@ -1,4 +1,7 @@
-#+TITLE: Lisp in Small Pieces notes
+#+TITLE: Lisp in Small Pieces notes and exercises
 
 This repo contains notes, implementations, and exercises from the book /Lisp in
 Small Pieces/.
+
+Each chapter directory contains a copy of the code from that chapter translated
+into [[https://racket-lang.org/][Racket]], a modern variant of Scheme.
